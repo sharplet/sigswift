@@ -11,6 +11,11 @@ func handle(_ event: Event) {
 func dispatch(_ actions: [App.Action]) {
   for action in actions {
     switch action {
+    case let .die(error):
+      let message = String(describing: error)
+      fputs(message + "\n", stderr)
+      exit(1)
+
     case .exit:
       exit(0)
 
@@ -46,7 +51,7 @@ keys.setEventHandler {
   } catch POSIXError.EINTR {
     return
   } catch {
-    die(error)
+    handle(.keyboardReadError(error))
   }
 }
 keys.resume()

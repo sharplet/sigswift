@@ -3,6 +3,7 @@ import enum Dispatch.DispatchTimeInterval
 
 struct App {
   enum Action {
+    case die(Error)
     case exit
     case schedule(Event, after: DispatchTimeInterval)
     case print(String)
@@ -21,6 +22,9 @@ struct App {
         .print("Process ID: \(processInfo.processIdentifier)\n"),
         .print("Try sending a signal!\n"),
       ]
+
+    case let .keyboardReadError(error):
+      return [.die(error)]
 
     case .keyboard where self.confirming:
       return []
