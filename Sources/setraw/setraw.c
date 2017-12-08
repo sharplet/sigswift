@@ -24,7 +24,7 @@ void setraw(void) {
 
   struct termios raw = orig_termios;
   raw.c_cflag |= (CS8);
-  raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+  raw.c_iflag &= ~(BRKINT | INPCK | ISTRIP | IXON);
   raw.c_lflag &= ~(ECHO | ICANON | IEXTEN);
 
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) {

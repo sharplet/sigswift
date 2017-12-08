@@ -1,3 +1,4 @@
+import func Darwin.C.iscntrl
 import enum Dispatch.DispatchTimeInterval
 
 struct App {
@@ -5,7 +6,6 @@ struct App {
     case exit
     case schedule(Event, after: DispatchTimeInterval)
     case print(String)
-    case prompt(String)
   }
 
   private var confirming = false
@@ -14,10 +14,10 @@ struct App {
     switch event {
     case .cancelExit:
       confirming = false
-      return [.print("")]
+      return [.print("\n")]
 
     case .init:
-      return [.print("Try sending a signal!")]
+      return [.print("Try sending a signal!\n")]
 
     case .keyboard where self.confirming:
       return []
@@ -25,15 +25,21 @@ struct App {
     case .keyboard(.EOT):
       return [.exit]
 
+    case let .keyboard(character) where character.isLineSeparator:
+      return [.print("\n")]
+
+    case let .keyboard(character) where character.isControlCode:
+      return [.print(character.escaped(asASCII: false))]
+
     case let .keyboard(character):
-      return [.print(character.escaped(asASCII: true))]
+      return [.print(String(character))]
 
     case .signal(.INT) where self.confirming:
-      return [.print(""), .exit]
+      return [.print("\n"), .exit]
 
     case .signal(.INT):
       confirming = true
-      return [.prompt("Exit? (^C to confirm)"), .schedule(.cancelExit, after: .seconds(2))]
+      return [.print("Exit? (^C to confirm)"), .schedule(.cancelExit, after: .seconds(2))]
 
     case .signal:
       return []

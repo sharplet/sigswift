@@ -15,10 +15,7 @@ func dispatch(_ actions: [App.Action]) {
       exit(0)
 
     case let .print(output):
-      print(output)
-
-    case let .prompt(message):
-      print(message, terminator: "")
+      print(output, terminator: "")
       fflush(stdout)
 
     case let .schedule(event, after: interval):
