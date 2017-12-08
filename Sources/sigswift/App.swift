@@ -29,7 +29,7 @@ struct App {
     case .keyboard where self.confirming:
       return []
 
-    case .endOfInput, .keyboard(.EOT):
+    case .keyboard(.EOT):
       return [.exit]
 
     case let .keyboard(character) where character.isLineSeparator:
