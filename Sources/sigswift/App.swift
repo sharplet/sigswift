@@ -47,8 +47,16 @@ struct App {
       confirming = true
       return [.print("Exit? (^C to confirm)"), .schedule(.cancelExit, after: .seconds(2))]
 
-    case .signal:
-      return []
+    case .signal(.TERM):
+      return [
+        .print("Terminating...\n"),
+        .exit,
+      ]
+
+    case let .signal(signal):
+      let description = String(reflecting: signal)
+      let name = description.split(separator: ".").last!
+      return [.print("Received \(name)\n")]
     }
   }
 }

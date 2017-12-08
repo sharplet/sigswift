@@ -53,12 +53,14 @@ keys.resume()
 
 // Set up signal sources
 
-signal(SIGINT, SIG_IGN)
-
-let int = DispatchSource.makeSignalSource(signal: SIGINT, queue: nil)
-int.setEventHandler {
-  handle(.signal(.INT))
+func handleSignal(_ signal: Signal) {
+  handle(.signal(signal))
 }
-int.resume()
+
+let hup = Signal.registerHandler(signal: .HUP, handler: handleSignal)
+let int = Signal.registerHandler(signal: .INT, handler: handleSignal)
+let term = Signal.registerHandler(signal: .TERM, handler: handleSignal)
+let usr1 = Signal.registerHandler(signal: .USR1, handler: handleSignal)
+let usr2 = Signal.registerHandler(signal: .USR2, handler: handleSignal)
 
 dispatchMain()

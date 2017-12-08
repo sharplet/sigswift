@@ -32,7 +32,11 @@
 // 30    SIGUSR1      terminate process    User defined signal 1
 // 31    SIGUSR2      terminate process    User defined signal 2
 
-import Darwin.C
+import var Darwin.C.SIG_IGN
+import func Darwin.C.signal
+import class Dispatch.DispatchQueue
+import class Dispatch.DispatchSource
+import protocol Dispatch.DispatchSourceSignal
 
 enum Signal: Int32 {
   case HUP = 1
@@ -67,4 +71,15 @@ enum Signal: Int32 {
   case INFO = 29
   case USR1 = 30
   case USR2 = 31
+}
+
+extension Signal {
+  static func registerHandler(signal: Signal, queue: DispatchQueue? = nil, handler: @escaping (Signal) -> Void) -> DispatchSourceSignal {
+    Darwin.signal(signal.rawValue, SIG_IGN)
+
+    let source = DispatchSource.makeSignalSource(signal: signal.rawValue, queue: queue)
+    source.setEventHandler { handler(signal) }
+    source.resume()
+    return source
+  }
 }
