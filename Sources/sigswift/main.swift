@@ -1,36 +1,49 @@
 import Foundation
 import setraw
 
-setraw()
-signal(SIGINT, SIG_IGN)
+var app = App()
 
-var confirming = false
+func handle(_ event: Event) {
+  let actions = app.handleEvent(event)
+  dispatch(actions)
+}
 
-let int = DispatchSource.makeSignalSource(signal: SIGINT, queue: nil)
-int.setEventHandler {
-  if confirming {
-    print()
-    exit(0)
-  }
+func dispatch(_ actions: [App.Action]) {
+  for action in actions {
+    switch action {
+    case .exit:
+      exit(0)
 
-  print("Exit? (^C to confirm)", terminator: "")
-  fflush(stdout)
+    case let .print(output):
+      print(output)
 
-  confirming = true
-  DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-    confirming = false
-    print()
+    case let .prompt(message):
+      print(message, terminator: "")
+      fflush(stdout)
+
+    case let .schedule(event, after: interval):
+      DispatchQueue.main.asyncAfter(deadline: .now() + interval) {
+        handle(event)
+      }
+    }
   }
 }
-int.resume()
+
+// Ensure app is initialised before any other event is handled.
+
+DispatchQueue.main.async {
+  handle(.init)
+}
+
+// Set up keyboard event source
+
+setraw()
 
 let keys = DispatchSource.makeReadSource(fileDescriptor: STDIN_FILENO, queue: nil)
 keys.setEventHandler {
   do {
-    guard let char = try readCharacter() else { exit(0) }
-    if confirming { return } // swallow input
-    if char.value == 4 { exit(0) } // EOT
-    print(char.escaped(asASCII: true))
+    guard let character = try readCharacter() else { exit(0) }
+    handle(.keyboard(character))
   } catch POSIXError.EAGAIN {
     return
   } catch POSIXError.EINTR {
@@ -41,6 +54,14 @@ keys.setEventHandler {
 }
 keys.resume()
 
-print("Try sending a signal!")
+// Set up signal sources
+
+signal(SIGINT, SIG_IGN)
+
+let int = DispatchSource.makeSignalSource(signal: SIGINT, queue: nil)
+int.setEventHandler {
+  handle(.signal(.INT))
+}
+int.resume()
 
 dispatchMain()
