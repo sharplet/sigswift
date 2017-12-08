@@ -44,7 +44,10 @@ setraw()
 let keys = DispatchSource.makeReadSource(fileDescriptor: STDIN_FILENO, queue: nil)
 keys.setEventHandler {
   do {
-    guard let character = try readCharacter() else { exit(0) }
+    guard let character = try readCharacter() else {
+      handle(.endOfInput)
+      return
+    }
     handle(.keyboard(character))
   } catch POSIXError.EAGAIN {
     return
