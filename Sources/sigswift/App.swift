@@ -28,6 +28,9 @@ struct App {
     case let .keyboard(character) where character.isLineSeparator:
       return [.print("\n")]
 
+    case let .keyboard(character) where character.isBackspace:
+      return [.print(.destructiveBackspace)]
+
     case let .keyboard(character) where character.isControlCode:
       return [.print(character.escaped(asASCII: false))]
 
