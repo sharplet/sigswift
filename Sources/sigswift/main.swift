@@ -1,23 +1,13 @@
-import Darwin.C
-import Dispatch
+import Foundation
+import setraw
 
-func backspace() {
-  putchar(8)
-  putchar(32)
-  putchar(8)
-}
-
+setraw()
 signal(SIGINT, SIG_IGN)
 
 var confirming = false
 
 let int = DispatchSource.makeSignalSource(signal: SIGINT, queue: nil)
 int.setEventHandler {
-  if isatty(fileno(stdout)) != 0 {
-    backspace()
-    backspace()
-  }
-
   if confirming {
     print()
     exit(0)
@@ -33,6 +23,23 @@ int.setEventHandler {
   }
 }
 int.resume()
+
+let keys = DispatchSource.makeReadSource(fileDescriptor: STDIN_FILENO, queue: nil)
+keys.setEventHandler {
+  do {
+    guard let char = try readCharacter() else { exit(0) }
+    if confirming { return } // swallow input
+    if char.value == 4 { exit(0) } // EOT
+    print(char.escaped(asASCII: true))
+  } catch POSIXError.EAGAIN {
+    return
+  } catch POSIXError.EINTR {
+    return
+  } catch {
+    die(error)
+  }
+}
+keys.resume()
 
 print("Try sending a signal!")
 

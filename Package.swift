@@ -7,6 +7,10 @@ let package = Package(
   targets: [
     .target(
       name: "sigswift",
+      dependencies: ["setraw"]
+    ),
+    .target(
+      name: "setraw",
       dependencies: []
     ),
   ]
