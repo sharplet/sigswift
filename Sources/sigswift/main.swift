@@ -29,7 +29,7 @@ func dispatch(_ actions: [App.Action]) {
 // Ensure app is initialised before any other event is handled.
 
 DispatchQueue.main.async {
-  handle(.init)
+  handle(.init(.processInfo))
 }
 
 // Set up keyboard event source

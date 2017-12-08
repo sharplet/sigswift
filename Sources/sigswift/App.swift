@@ -16,8 +16,11 @@ struct App {
       confirming = false
       return [.print("\n")]
 
-    case .init:
-      return [.print("Try sending a signal!\n")]
+    case let .init(processInfo):
+      return [
+        .print("Process ID: \(processInfo.processIdentifier)\n"),
+        .print("Try sending a signal!\n"),
+      ]
 
     case .keyboard where self.confirming:
       return []
